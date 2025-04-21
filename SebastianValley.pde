@@ -15,7 +15,7 @@ void setup() {
   wallpaper_border = loadImage("./wallpaper_border.png"); // Border texture
 
   // Wallpaper focal point (centered image)
-  handsome = new Sebastian(loadImage("./Sebastian_spritesheet.png")); 
+  handsome = new Sebastian(loadImage("./Sebastian_spritesheet.png"), 3.0); 
 
   // Items to pattern around the focal point
   bgPatternItems = new PImage[4];
