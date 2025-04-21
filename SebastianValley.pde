@@ -1,16 +1,21 @@
-PImage wallpaper_border, wallpaper_background, Sebastian;
+final int FPS = 24;
+
+PImage wallpaper_border, wallpaper_background;
 PImage[] bgPatternItems;
+
+Sebastian handsome;
 
 void setup() {
   size(432, 960);  // Set the window size (for testing purposes)
   noSmooth(); // Important for pixel art, prevents interpolation (blurring)
+  frameRate(FPS);
 
   // Assets to build tiled and bordered background
   wallpaper_background = loadImage("./background_96x82.png"); // Base wallpaper texture
   wallpaper_border = loadImage("./wallpaper_border.png"); // Border texture
 
   // Wallpaper focal point (centered image)
-  Sebastian = loadImage("./Sebastian.png"); // Main focal image for the wallpaper
+  handsome = new Sebastian(loadImage("./Sebastian_spritesheet.png")); 
 
   // Items to pattern around the focal point
   bgPatternItems = new PImage[4];
@@ -23,6 +28,8 @@ void setup() {
 void draw() {
   renderBG(); // Draw the background with border and tiling
   renderBGPatternItems(); // (Placeholder) Draw pattern items around the focal point
+  handsome.update();
+  handsome.render(width / 2, height / 2);  // Render Sebastian in the center
 }
 
 void renderBG() {
