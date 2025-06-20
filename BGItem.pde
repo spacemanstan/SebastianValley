@@ -60,8 +60,6 @@ class BGItem {
     image(this.sprite, 0, 0, this.spriteSize, this.spriteSize);
     imageMode(CORNER);
     resetMatrix();
-    
-    println(this.laps);
   }
 
   void wrapAround() {
