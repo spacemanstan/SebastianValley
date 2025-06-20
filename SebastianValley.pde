@@ -1,65 +1,143 @@
 final int FPS = 24;
 
 PImage wallpaper_border, wallpaper_background;
-PImage[] bgPatternItems;
+PImage[] sprites;
 
 Sebastian handsome;
 
+int cols = 5;
+int rows = 9;
+ArrayList<ArrayList<BGItem>> BGItems = new ArrayList<>();
+
+int timer = 0;
+
+float maxSpriteSize;
+
 void setup() {
-  size(432, 960);  // Set the window size (for testing purposes)
-  noSmooth(); // Important for pixel art, prevents interpolation (blurring)
+  size(432, 960);
+  noSmooth();
   frameRate(FPS);
 
-  // Assets to build tiled and bordered background
-  wallpaper_background = loadImage("./background_96x82.png"); // Base wallpaper texture
-  wallpaper_border = loadImage("./wallpaper_border.png"); // Border texture
+  wallpaper_background = loadImage("./background_96x82.png");
+  wallpaper_border = loadImage("./wallpaper_border.png");
 
-  // Wallpaper focal point (centered image)
-  handsome = new Sebastian(loadImage("./Sebastian_spritesheet.png")); 
+  handsome = new Sebastian(loadImage("./Sebastian_spritesheet.png"), 3.0);
 
-  // Items to pattern around the focal point
-  bgPatternItems = new PImage[4];
-  bgPatternItems[0] = loadImage("./Purple_Mushroom.png"); // Item 1 to pattern
-  bgPatternItems[1] = loadImage("./Frozen_Tear.png"); // Item 2 to pattern
-  bgPatternItems[2] = loadImage("./frog.png"); // Item 3 to pattern
-  bgPatternItems[3] = loadImage("./FairyRose.png"); // Item 4 to pattern
+  sprites = new PImage[5];
+  sprites[0] = loadImage("./Purple_Mushroom.png");
+  sprites[1] = loadImage("./Frozen_Tear.png");
+  sprites[2] = loadImage("./frog.png");
+  sprites[3] = loadImage("./FairyRose.png");
+  sprites[4] = loadImage("./junimo_stub.png");
+
+  maxSpriteSize = width * 0.15;
+  float margin = maxSpriteSize / 2.0;
+
+  // Maximum columns in any row (even rows have full cols)
+  int maxCols = cols;
+
+  float usableWidth = width - margin * 2;
+  float usableHeight = height - margin * 2;
+
+  // Calculate xSpacing based on maxCols - 1 gaps
+  float xSpacing = (maxCols > 1) ? usableWidth / (maxCols - 1) : usableWidth;
+  float ySpacing = (rows > 1) ? usableHeight / (rows - 1) : usableHeight;
+
+  for (int r = 0; r < rows; r++) {
+    if (r == 0 || r == rows - 1) {
+      // Skip first and last row: add empty placeholder (or skip adding anything)
+      BGItems.add(new ArrayList<BGItem>());
+      continue;
+    }
+
+    int colsThisRow = (r % 2 == 0) ? cols : max(1, cols - 1);
+    ArrayList<BGItem> row = new ArrayList<>();
+
+    for (int c = 0; c < colsThisRow; c++) {
+      float x = margin + c * xSpacing;
+      float y = margin + r * ySpacing;
+
+      if (r % 2 == 1) {
+        x += xSpacing / 2.0;
+      }
+
+      BGItem item = new BGItem(x, y, sprites[int(random(sprites.length))], maxSpriteSize);
+      row.add(item);
+    }
+
+    BGItems.add(row);
+  }
 }
 
 void draw() {
-  renderBG(); // Draw the background with border and tiling
-  renderBGPatternItems(); // (Placeholder) Draw pattern items around the focal point
-  handsome.update();
-  handsome.render(width / 2, height / 2);  // Render Sebastian in the center
-}
+  resetMatrix();
 
-void renderBG() {
-  if (wallpaper_background == null) return; // Prevents errors if the background isn't loaded
+  renderBG();
 
-  // Height-based tiling
-  float tilesDown = 4.0; // How many times to repeat the pattern vertically
-  float scaleFactor = height / (tilesDown * wallpaper_background.height); // Scale factor to fit vertically
+  for (int r = 0; r < BGItems.size(); r++) {
+    // Skip first and last row (empty)
+    if (r == 0 || r == BGItems.size() - 1) continue;
 
-  int tileWidth = int(wallpaper_background.width * scaleFactor); // Scaled tile width
-  int tileHeight = int(wallpaper_background.height * scaleFactor); // Scaled tile height
-
-  // Tile the base wallpaper texture across the entire screen
-  for (int y = 0; y < height; y += tileHeight) {
-    for (int x = 0; x < width; x += tileWidth) {
-      image(wallpaper_background, x, y, tileWidth, tileHeight); // Draw each tile
+    for (BGItem item : BGItems.get(r)) {
+      item.update();
+      item.render();
     }
   }
-  
-  // Top and Bottom Border
-  float borderScale = 0.05; // 5% of screen height for the border
-  int borderHeight = int(height * borderScale); // Calculate border height based on screen height
-  int borderWidth = width; // Stretch border across the full screen width
 
-  // Draw the top and bottom borders
-  image(wallpaper_border, 0, 0, borderWidth, borderHeight); // Draw the top border
-  image(wallpaper_border, 0, height - borderHeight, borderWidth, borderHeight); // Draw the bottom border
+  handsome.update();
+  handsome.render(width / 2, height / 2);
+
+  renderBorder();
+
+  handleLogic();
 }
 
-void renderBGPatternItems() {
-  // Placeholder function for rendering pattern items like Sebastian or mushrooms
-  // This function will loop through the pattern items and display them around the screen
+void handleLogic() {
+}
+
+void mouseClicked() {
+  int chaosMode = (int)random(0, 3);      // 0, 1, or 2
+  int chaosVertOrHorz = (int)random(0, 2); // 0 = vertical split, 1 = horizontal split
+  float speed = maxSpriteSize * 0.65;
+  
+  // For chaosMode 2, pick one random direction for all items
+  int groupDirection = (chaosMode == 2) ? (int)random(1, 5) : -1;
+
+  for (int r = 0; r < BGItems.size(); r++) {
+    if (r == 0 || r == BGItems.size() - 1) continue; // skip first and last rows
+
+    ArrayList<BGItem> row = BGItems.get(r);
+
+    for (int c = 0; c < row.size(); c++) {
+      BGItem item = row.get(c);
+      int randomLapCount = (int)random(3, 8);
+      int randomDirection;
+
+      if (chaosMode == 0) {
+        // Fully random directions per item
+        randomDirection = (int)random(1, 5);
+      } else if (chaosMode == 1) {
+        // Split directions based on row or column parity
+        if (chaosVertOrHorz == 0) {
+          // vertical split: even rows up, odd rows down
+          randomDirection = (r % 2 == 0) ? 4 : 3; // 4=up, 3=down
+        } else {
+          // horizontal split: even cols right, odd cols left
+          randomDirection = (c % 2 == 0) ? 1 : 2; // 1=right, 2=left
+        }
+      } else if (chaosMode == 2) {
+        // All move same direction
+        randomDirection = groupDirection;
+      } else {
+        // Fallback to random if more modes are added later
+        randomDirection = (int)random(1, 5);
+      }
+
+      // Trigger movement based on chosen direction
+      if (randomDirection == 1) item.triggerStart(randomLapCount, speed, 0);
+      else if (randomDirection == 2) item.triggerStart(randomLapCount, -speed, 0);
+      else if (randomDirection == 3) item.triggerStart(randomLapCount, 0, speed);
+      else if (randomDirection == 4) item.triggerStart(randomLapCount, 0, -speed);
+    }
+  }
 }
