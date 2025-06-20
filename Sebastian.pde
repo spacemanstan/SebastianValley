@@ -1,60 +1,75 @@
 class Sebastian {
-  PImage sheet;  // The sprite sheet for Sebastian
-  int cols = 2, rows = 2;  // The sprite sheet is 2x2
-  int frameW, frameH;  // Width and height of each frame
+  PImage sheet;           // Sprite sheet containing 4 poses (2x2 grid)
+  int cols = 2, rows = 2; // Layout of the sprite sheet
+  int frameW, frameH;     // Dimensions of each frame
   int currentFrame = 0;
   int nextFrame = 0;
-  int frameDelay = 2 * FPS;  // Delay between frame changes (for non-blink poses)
-  int bounceTimer = 0;
-  float bounceAmount = 10;  // How much Sebastian moves up and down
-  float stretchAmount = 0.2;  // Amount to stretch when switching sprites
-  
+  int frameDelay = 2 * FPS; // Duration (in frames) before switching pose
+  float scaleMultiplier = 1.0; // Controls Sebastian’s rendered size
+  float bounceAmount = 5;     // Bounce height in pixels
+  float stretchAmount = 0.2;   // Amount of vertical squash/stretch
+
+  // Constructor with default scale (1.0)
   Sebastian(PImage spriteSheet) {
-    this.sheet = spriteSheet;
-    this.frameW = spriteSheet.width / cols;
-    this.frameH = spriteSheet.height / rows;
+    this(spriteSheet, 1.0);
   }
 
-  // Switch between frames based on frameCount
+  // Constructor with optional scale multiplier
+  // Allows customizing the size Sebastian is drawn on screen
+  Sebastian(PImage spriteSheet, float scaleMultiplier) {
+    this.sheet = spriteSheet;
+    this.scaleMultiplier = scaleMultiplier;
+    this.frameW = sheet.width / cols;
+    this.frameH = sheet.height / rows;
+  }
+
+  // Handles pose switching logic
+  // Uses frameCount to time transitions between poses
   void update() {
-    // Based on frameCount, we change the frame after a certain number of frames
     int frameProgress = frameCount % frameDelay;
 
-    // If it's time to switch frames
+    // When it's time to switch pose, rotate through animations
     if (frameProgress == 0) {
       if (currentFrame == 0) {
-        nextFrame = int(random(1, 4));  // Randomly switch between Smile, Blush, or Side-eye
+        // From Blink, pick a new random expression
+        nextFrame = int(random(1, 4));
         currentFrame = nextFrame;
-        if (nextFrame == 3) frameDelay = 2 * FPS;  // Side-eye is quick, 2 seconds
-        else frameDelay = int(random(3, 7)) * FPS;  // Other frames stay for 3 to 7 seconds
+        frameDelay = (nextFrame == 3) ? 2 * FPS : int(random(3, 7)) * FPS;
       } else if (currentFrame == 3) {
-        currentFrame = 2;  // After Side-eye, go to Blush
+        // From Side-eye, go to Blush (short transition)
+        currentFrame = 2;
         frameDelay = int(random(3, 7)) * FPS;
       } else {
-        currentFrame = 0;  // After Blush, go to Blink
-        frameDelay = 2 * FPS;  // Blink stays for 2 seconds
+        // Any other pose returns to Blink
+        currentFrame = 0;
+        frameDelay = 2 * FPS;
       }
     }
   }
 
-  // Get the current frame from the sprite sheet
+  // Returns the current pose frame from the sprite sheet
   PImage getFrame() {
     int col = currentFrame % cols;
     int row = currentFrame / cols;
     return sheet.get(col * frameW, row * frameH, frameW, frameH);
   }
 
-  // Draw Sebastian with bounce and stretch effect
+  // Draws Sebastian in the center of the screen with a bounce and stretch
+  // Scale multiplier affects both size and bounce dynamics
   void render(float cx, float cy) {
-    float time = frameCount / float(FPS);  // Time based on frame count
-    float bounceOffset = sin(time * 2) * bounceAmount;  // Sine wave for smooth bounce
-    float size = 100 + (sin(time * 2) * stretchAmount);  // Stretching effect
+    float time = frameCount / float(FPS);
+    float bounceOffset = sin(time * 2) * bounceAmount * scaleMultiplier;
+    float calcShit = (sin(time * 2) * stretchAmount * frameH);
+    float w = frameW * scaleMultiplier - calcShit * 0.5;
+    float h = frameH * scaleMultiplier + calcShit;
 
-    pushMatrix();
+    //pushMatrix();
+    resetMatrix();
     translate(cx, cy + bounceOffset);
     imageMode(CENTER);
-    image(getFrame(), 0, 0, size, size * 1.125);  // Stretch vertically a bit
+    image(getFrame(), 0, 0, w, h);  // Stretch vertically using sine wave
     imageMode(CORNER);
-    popMatrix();
+    resetMatrix();
+    //popMatrix();
   }
 }
