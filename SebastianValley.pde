@@ -96,16 +96,48 @@ void handleLogic() {
 }
 
 void mouseClicked() {
+  int chaosMode = (int)random(0, 3);      // 0, 1, or 2
+  int chaosVertOrHorz = (int)random(0, 2); // 0 = vertical split, 1 = horizontal split
+  float speed = maxSpriteSize * 0.65;
+  
+  // For chaosMode 2, pick one random direction for all items
+  int groupDirection = (chaosMode == 2) ? (int)random(1, 5) : -1;
+
   for (int r = 0; r < BGItems.size(); r++) {
-    if (r == 0 || r == BGItems.size() - 1) continue;
-    for (BGItem item : BGItems.get(r)) {
+    if (r == 0 || r == BGItems.size() - 1) continue; // skip first and last rows
+
+    ArrayList<BGItem> row = BGItems.get(r);
+
+    for (int c = 0; c < row.size(); c++) {
+      BGItem item = row.get(c);
       int randomLapCount = (int)random(3, 8);
-      float speed = maxSpriteSize * 0.65;
-      int randomDirection = (int)random(1, 5);
-      if (randomDirection == 1) item.triggerStart(randomLapCount, maxSpriteSize, 0);
-      if (randomDirection == 2) item.triggerStart(randomLapCount, -maxSpriteSize, 0);
-      if (randomDirection == 3) item.triggerStart(randomLapCount, 0, maxSpriteSize);
-      if (randomDirection == 4) item.triggerStart(randomLapCount, 0, -maxSpriteSize);
+      int randomDirection;
+
+      if (chaosMode == 0) {
+        // Fully random directions per item
+        randomDirection = (int)random(1, 5);
+      } else if (chaosMode == 1) {
+        // Split directions based on row or column parity
+        if (chaosVertOrHorz == 0) {
+          // vertical split: even rows up, odd rows down
+          randomDirection = (r % 2 == 0) ? 4 : 3; // 4=up, 3=down
+        } else {
+          // horizontal split: even cols right, odd cols left
+          randomDirection = (c % 2 == 0) ? 1 : 2; // 1=right, 2=left
+        }
+      } else if (chaosMode == 2) {
+        // All move same direction
+        randomDirection = groupDirection;
+      } else {
+        // Fallback to random if more modes are added later
+        randomDirection = (int)random(1, 5);
+      }
+
+      // Trigger movement based on chosen direction
+      if (randomDirection == 1) item.triggerStart(randomLapCount, speed, 0);
+      else if (randomDirection == 2) item.triggerStart(randomLapCount, -speed, 0);
+      else if (randomDirection == 3) item.triggerStart(randomLapCount, 0, speed);
+      else if (randomDirection == 4) item.triggerStart(randomLapCount, 0, -speed);
     }
   }
 }
