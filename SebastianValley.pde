@@ -46,11 +46,10 @@ void draw() {
 void mouseClicked() {
   if (mouseButton == LEFT) {
     // left mouse
-    testBGItem.tarVel.x = (testBGItem.spriteSize * 0.6);
+    testBGItem.triggerStart(3,width/12,0);
   } else if (mouseButton == RIGHT) {
     // right mouse
   } else {
     // middle mouse
-    testBGItem.tarVel.x = 0;
   }
 }
