@@ -9,6 +9,8 @@ Sebastian handsome;
 
 boolean test = true;
 
+int fuck = 3;
+
 void setup() {
   size(432, 960);
   noSmooth();
@@ -46,7 +48,13 @@ void draw() {
 void mouseClicked() {
   if (mouseButton == LEFT) {
     // left mouse
-    testBGItem.triggerStart(3,width/12,0);
+    if(fuck == 1) testBGItem.triggerStart(3,width/12,0);
+    if(fuck == 2) testBGItem.triggerStart(3,-width/12,0);
+    if(fuck == 3) testBGItem.triggerStart(3,0,width/12);
+    if(fuck == 4) testBGItem.triggerStart(3,0,-width/12);
+    
+    fuck = fuck > 4 ? 3 : fuck + 1;
+    
   } else if (mouseButton == RIGHT) {
     // right mouse
   } else {

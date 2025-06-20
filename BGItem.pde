@@ -7,7 +7,7 @@ class BGItem {
 
   float spriteSize;
   PImage sprite;
-  
+
   boolean stop;
 
   BGItem(float px, float py, PImage spriteRef, float sSize) {
@@ -27,8 +27,9 @@ class BGItem {
 
   void update() {
     // stop
-    if (this.stop) {
+    if (this.stop && this.laps >= this.tarLaps) {
       if (PVector.dist(this.pos, this.startPos) < (this.spriteSize * 0.05)) {
+        this.pos.set(this.startPos);  // snap back to original
         this.tarVel.set(0, 0);
         this.vel.set(0, 0);
         this.laps = 0;
@@ -41,9 +42,9 @@ class BGItem {
     PVector dVel = PVector.sub(this.tarVel, this.vel);
     dVel.mult(this.easing);
     this.vel.add(dVel);
-    
-    if (this.laps == this.tarLaps) {
-      this.tarVel.mult(0.05);
+
+    if(!stop && this.laps == this.tarLaps - 1) {
+      this.tarVel.mult(0.2);
       this.stop = true;
     }
 
@@ -59,6 +60,8 @@ class BGItem {
     image(this.sprite, 0, 0, this.spriteSize, this.spriteSize);
     imageMode(CORNER);
     resetMatrix();
+    
+    println(this.laps);
   }
 
   void wrapAround() {
@@ -86,8 +89,6 @@ class BGItem {
     }
 
     if (newLap) laps += 1;
-
-    //println("Laps: " + this.laps);
   }
 
   void triggerStart(int laps, float dirX, float dirY) {
