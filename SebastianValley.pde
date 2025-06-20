@@ -14,21 +14,22 @@ int timer = 0;
 float maxSpriteSize;
 
 void setup() {
-  size(432, 960);
+  fullScreen();
+  orientation(PORTRAIT);
   noSmooth();
   frameRate(FPS);
 
-  wallpaper_background = loadImage("./background_96x82.png");
-  wallpaper_border = loadImage("./wallpaper_border.png");
+  wallpaper_background = loadImage("background96x82.png");
+  wallpaper_border = loadImage("wallpaperborder.png");
 
-  handsome = new Sebastian(loadImage("./Sebastian_spritesheet.png"), 3.0);
+  handsome = new Sebastian(loadImage("Sebastianspritesheet.png"), 15.0);
 
   sprites = new PImage[5];
-  sprites[0] = loadImage("./Purple_Mushroom.png");
-  sprites[1] = loadImage("./Frozen_Tear.png");
-  sprites[2] = loadImage("./frog.png");
-  sprites[3] = loadImage("./FairyRose.png");
-  sprites[4] = loadImage("./junimo_stub.png");
+  sprites[0] = loadImage("PurpleMushroom.png");
+  sprites[1] = loadImage("FrozenTear.png");
+  sprites[2] = loadImage("frog.png");
+  sprites[3] = loadImage("FairyRose.png");
+  sprites[4] = loadImage("junimospritesheet.png");
 
   maxSpriteSize = width * 0.15;
   float margin = maxSpriteSize / 2.0;
@@ -61,7 +62,15 @@ void setup() {
         x += xSpacing / 2.0;
       }
 
-      BGItem item = new BGItem(x, y, sprites[int(random(sprites.length))], maxSpriteSize);
+      BGItem item;
+      int randomSpriteIndex = int(random(sprites.length));
+
+      if (randomSpriteIndex == 4) {
+        item = new AnimatedBGItem(x, y, sprites[randomSpriteIndex], 1, 4, maxSpriteSize);
+      } else {
+        item = new BGItem(x, y, sprites[randomSpriteIndex], maxSpriteSize);
+      }
+
       row.add(item);
     }
 
@@ -88,6 +97,8 @@ void draw() {
   handsome.render(width / 2, height / 2);
 
   renderBorder();
+
+  if (touches.length > 0) bigFuckOffNastyFunction();
 }
 
 boolean thisReturnsFalseIfNoBGItemsAreMovingAndCanMoveAgain() {
@@ -105,12 +116,7 @@ boolean thisReturnsFalseIfNoBGItemsAreMovingAndCanMoveAgain() {
   return false;
 }
 
-void mouseClicked() {
-  if (mouseButton == RIGHT) {
-    println(thisReturnsFalseIfNoBGItemsAreMovingAndCanMoveAgain());
-    return;
-  }
-
+void bigFuckOffNastyFunction() {
   if (thisReturnsFalseIfNoBGItemsAreMovingAndCanMoveAgain()) {
     return;
   }
