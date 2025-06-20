@@ -21,7 +21,7 @@ class BGItem {
     this.spriteSize = sSize;
 
     this.laps = 0;
-    this.tarLaps = 1;
+    this.tarLaps = 3;
     this.stop = false;
   }
 
