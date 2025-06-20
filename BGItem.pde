@@ -28,7 +28,7 @@ class BGItem {
   void update() {
     // stop
     if (this.stop && this.laps >= this.tarLaps) {
-      if (PVector.dist(this.pos, this.startPos) < (this.spriteSize * 0.05)) {
+      if (PVector.dist(this.pos, this.startPos) < (this.spriteSize * 0.1)) {
         this.pos.set(this.startPos);  // snap back to original
         this.tarVel.set(0, 0);
         this.vel.set(0, 0);
