@@ -88,18 +88,37 @@ void draw() {
   handsome.render(width / 2, height / 2);
 
   renderBorder();
-
-  handleLogic();
 }
 
-void handleLogic() {
+boolean thisReturnsFalseIfNoBGItemsAreMovingAndCanMoveAgain() {
+  for (int r = 0; r < BGItems.size(); r++) {
+    // Skip first and last row (empty)
+    if (r == 0 || r == BGItems.size() - 1) continue;
+
+    for (BGItem item : BGItems.get(r)) {
+      if (item.stop == true) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 void mouseClicked() {
+  if (mouseButton == RIGHT) {
+    println(thisReturnsFalseIfNoBGItemsAreMovingAndCanMoveAgain());
+    return;
+  }
+
+  if (thisReturnsFalseIfNoBGItemsAreMovingAndCanMoveAgain()) {
+    return;
+  }
+
   int chaosMode = (int)random(0, 3);      // 0, 1, or 2
   int chaosVertOrHorz = (int)random(0, 2); // 0 = vertical split, 1 = horizontal split
   float speed = maxSpriteSize * 0.65;
-  
+
   // For chaosMode 2, pick one random direction for all items
   int groupDirection = (chaosMode == 2) ? (int)random(1, 5) : -1;
 
