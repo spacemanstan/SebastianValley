@@ -63,11 +63,13 @@ class Sebastian {
     float w = frameW * scaleMultiplier - calcShit * 0.5;
     float h = frameH * scaleMultiplier + calcShit;
 
-    pushMatrix();
+    //pushMatrix();
+    resetMatrix();
     translate(cx, cy + bounceOffset);
     imageMode(CENTER);
     image(getFrame(), 0, 0, w, h);  // Stretch vertically using sine wave
     imageMode(CORNER);
-    popMatrix();
+    resetMatrix();
+    //popMatrix();
   }
 }
