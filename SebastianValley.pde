@@ -5,10 +5,9 @@ PImage[] sprites;
 
 Sebastian handsome;
 
-int cols = 3;
+int cols = 5;
 int rows = 9;
 ArrayList<ArrayList<BGItem>> BGItems = new ArrayList<>();
-
 
 void setup() {
   size(432, 960);
@@ -27,19 +26,23 @@ void setup() {
   sprites[3] = loadImage("./FairyRose.png");
   sprites[4] = loadImage("./junimo_stub.png");
 
-  float maxCols = 7;
   float maxSpriteSize = width * 0.15;
   float margin = maxSpriteSize / 2.0;
 
-  // Calculate spacing so sprites don’t go off the edge
+  // Maximum columns in any row (even rows have full cols)
+  int maxCols = cols;
+
   float usableWidth = width - margin * 2;
   float usableHeight = height - margin * 2;
 
-  float xSpacing = usableWidth / (maxCols - 1);
-  float ySpacing = usableHeight / (rows - 1);
+  // Calculate xSpacing based on maxCols - 1 gaps
+  float xSpacing = (maxCols > 1) ? usableWidth / (maxCols - 1) : usableWidth;
+  float ySpacing = (rows > 1) ? usableHeight / (rows - 1) : usableHeight;
 
   for (int r = 0; r < rows; r++) {
-    int colsThisRow = (r % 2 == 0) ? 7 : 6;
+    // Odd rows have one less column, you can tweak this logic
+    int colsThisRow = (r % 2 == 0) ? cols : max(1, cols - 1);
+
     ArrayList<BGItem> row = new ArrayList<>();
 
     for (int c = 0; c < colsThisRow; c++) {
@@ -47,7 +50,7 @@ void setup() {
       float y = margin + r * ySpacing;
 
       if (r % 2 == 1) {
-        x += xSpacing / 2.0;
+        x += xSpacing / 2.0;  // Offset odd rows by half spacing
       }
 
       BGItem item = new BGItem(x, y, sprites[int(random(sprites.length))], maxSpriteSize);
@@ -63,9 +66,6 @@ void draw() {
 
   renderBG();
 
-  renderBorder();
-
-
   for (ArrayList<BGItem> row : BGItems) {
     for (BGItem item : row) {
       item.update();
@@ -73,7 +73,8 @@ void draw() {
     }
   }
 
-
   handsome.update();
   handsome.render(width / 2, height / 2);
+
+  renderBorder();
 }
