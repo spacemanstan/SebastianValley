@@ -13,6 +13,13 @@ int timer = 0;
 
 float maxSpriteSize;
 
+int lastTouchCount = 0;
+int lastTouchTime = 0;
+int debounceDelay = 250; // milliseconds
+int lastTouchTriggerTime = 0;
+int currentTouchCount = 0;
+boolean touchHandled = false;
+
 void setup() {
   fullScreen();
   orientation(PORTRAIT);
@@ -22,63 +29,21 @@ void setup() {
   wallpaper_background = loadImage("background96x82.png");
   wallpaper_border = loadImage("wallpaperborder.png");
 
-  handsome = new Sebastian(loadImage("Sebastianspritesheet.png"), 15.0);
+  handsome = new Sebastian(loadImage("Sebastianspritesheet.png"), 16.0);
 
   sprites = new PImage[5];
   sprites[0] = loadImage("PurpleMushroom.png");
   sprites[1] = loadImage("FrozenTear.png");
   sprites[2] = loadImage("frog.png");
   sprites[3] = loadImage("FairyRose.png");
-  sprites[4] = loadImage("junimospritesheet.png");
+  sprites[4] = loadImage("junimospritesheetdeluxe.png");
 
-  maxSpriteSize = width * 0.15;
-  float margin = maxSpriteSize / 2.0;
-
-  // Maximum columns in any row (even rows have full cols)
-  int maxCols = cols;
-
-  float usableWidth = width - margin * 2;
-  float usableHeight = height - margin * 2;
-
-  // Calculate xSpacing based on maxCols - 1 gaps
-  float xSpacing = (maxCols > 1) ? usableWidth / (maxCols - 1) : usableWidth;
-  float ySpacing = (rows > 1) ? usableHeight / (rows - 1) : usableHeight;
-
-  for (int r = 0; r < rows; r++) {
-    if (r == 0 || r == rows - 1) {
-      // Skip first and last row: add empty placeholder (or skip adding anything)
-      BGItems.add(new ArrayList<BGItem>());
-      continue;
-    }
-
-    int colsThisRow = (r % 2 == 0) ? cols : max(1, cols - 1);
-    ArrayList<BGItem> row = new ArrayList<>();
-
-    for (int c = 0; c < colsThisRow; c++) {
-      float x = margin + c * xSpacing;
-      float y = margin + r * ySpacing;
-
-      if (r % 2 == 1) {
-        x += xSpacing / 2.0;
-      }
-
-      BGItem item;
-      int randomSpriteIndex = int(random(sprites.length));
-
-      if (randomSpriteIndex == 4) {
-        item = new AnimatedBGItem(x, y, sprites[randomSpriteIndex], 1, 4, maxSpriteSize);
-      } else {
-        item = new BGItem(x, y, sprites[randomSpriteIndex], maxSpriteSize);
-      }
-
-      row.add(item);
-    }
-
-    BGItems.add(row);
-  }
+  generateBGItemsGrid();
 }
 
 void draw() {
+  handleTouches();
+
   resetMatrix();
 
   renderBG();
@@ -97,8 +62,6 @@ void draw() {
   handsome.render(width / 2, height / 2);
 
   renderBorder();
-
-  if (touches.length > 0) bigFuckOffNastyFunction();
 }
 
 boolean thisReturnsFalseIfNoBGItemsAreMovingAndCanMoveAgain() {
@@ -164,5 +127,90 @@ void bigFuckOffNastyFunction() {
       else if (randomDirection == 3) item.triggerStart(randomLapCount, 0, speed);
       else if (randomDirection == 4) item.triggerStart(randomLapCount, 0, -speed);
     }
+  }
+}
+
+void handleTouches() {
+  int now = millis();
+
+  // Touch count changed: start delay timer
+  if (touches.length != currentTouchCount) {
+    currentTouchCount = touches.length;
+    lastTouchTriggerTime = now;
+    touchHandled = false;
+  }
+
+  // If enough time has passed and we haven't already handled it
+  if (!touchHandled && now - lastTouchTriggerTime > debounceDelay) {
+    if (currentTouchCount == 3) {
+      resetAllBGItems();
+    } else if (currentTouchCount == 2 && allBGItemsIdle()) {
+      bigFuckOffNastyFunction();
+    }
+
+    touchHandled = true;
+  }
+}
+
+boolean allBGItemsIdle() {
+  for (ArrayList<BGItem> row : BGItems) {
+    for (BGItem item : row) {
+      if (item.stop) return false;
+    }
+  }
+  return true;
+}
+
+void resetAllBGItems() {
+  generateBGItemsGrid();
+}
+
+void generateBGItemsGrid() {
+  BGItems.clear();
+
+  maxSpriteSize = width * 0.15;
+  float margin = maxSpriteSize / 2.0;
+
+  // Maximum columns in any row (even rows have full cols)
+  int maxCols = cols;
+
+  float usableWidth = width - margin * 2;
+  float usableHeight = height - margin * 2;
+
+  // Calculate xSpacing based on maxCols - 1 gaps
+  float xSpacing = (maxCols > 1) ? usableWidth / (maxCols - 1) : usableWidth;
+  float ySpacing = (rows > 1) ? usableHeight / (rows - 1) : usableHeight;
+
+  for (int r = 0; r < rows; r++) {
+    if (r == 0 || r == rows - 1) {
+      // Skip first and last row: add empty placeholder (or skip adding anything)
+      BGItems.add(new ArrayList<BGItem>());
+      continue;
+    }
+
+    int colsThisRow = (r % 2 == 0) ? cols : max(1, cols - 1);
+    ArrayList<BGItem> row = new ArrayList<>();
+
+    for (int c = 0; c < colsThisRow; c++) {
+      float x = margin + c * xSpacing;
+      float y = margin + r * ySpacing;
+
+      if (r % 2 == 1) {
+        x += xSpacing / 2.0;
+      }
+
+      BGItem item;
+      int randomSpriteIndex = int(random(sprites.length));
+
+      if (randomSpriteIndex == 4) {
+        item = new AnimatedBGItem(x, y, sprites[randomSpriteIndex], 8, 3, maxSpriteSize);
+      } else {
+        item = new BGItem(x, y, sprites[randomSpriteIndex], maxSpriteSize);
+      }
+
+      row.add(item);
+    }
+
+    BGItems.add(row);
   }
 }
